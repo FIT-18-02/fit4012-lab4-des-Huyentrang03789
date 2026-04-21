@@ -1,0 +1,28 @@
+name: FIT4012 Submission CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-submission:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up compiler
+        run: g++ --version
+
+      - name: Build des.cpp
+        run: g++ -std=c++17 -Wall -Wextra -pedantic des.cpp -o des
+
+      - name: Run submission structure checks
+        run: bash .github/scripts/check_submission.sh
+
+      - name: Auto-check Q2 (stdin + multi-block + zero padding)
+        run: bash .github/grading/test_q2.sh
+
+      - name: Auto-check Q4 (TripleDES encrypt/decrypt)
+        run: bash .github/grading/test_q4.sh
