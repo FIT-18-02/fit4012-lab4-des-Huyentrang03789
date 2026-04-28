@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-
-# Gợi ý: sau khi em viết thêm giải mã, cần kiểm tra decrypt(encrypt(plaintext)) = plaintext.
+# Test: sau khi em viết thêm giải mã, cần kiểm tra decrypt(encrypt(plaintext)) = plaintext.
 set -euo pipefail
 
 g++ -std=c++17 des.cpp -o des
