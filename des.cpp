@@ -102,24 +102,55 @@ private:
 public:
     DES(vector<string> k) : keys(k) {}
 
-    string process(string input, bool decrypt = false) {
-        if (decrypt) reverse(keys.begin(), keys.end());
+string process(string input, bool decrypt = false) {
+    vector<string> roundKeys = keys;
 
-        string perm = initial_permutation(input);
+    if (decrypt) reverse(roundKeys.begin(), roundKeys.end());
 
-        string left = perm.substr(0, 32);
-        string right = perm.substr(32, 32);
+    string perm = initial_permutation(input);
 
-        for (int i = 0; i < 16; i++) {
-            string temp = right;
-            string f = xor_str(right, keys[i].substr(0, 32)); // đơn giản hóa
-            right = xor_str(left, f);
-            left = temp;
-        }
+    string left = perm.substr(0, 32);
+    string right = perm.substr(32, 32);
 
-        string combined = right + left;
-        return inverse_initial_permutation(combined);
+    int expansion_table[48] = {
+        32,1,2,3,4,5,4,5,6,7,8,9,8,9,10,11,
+        12,13,12,13,14,15,16,17,16,17,18,19,
+        20,21,20,21,22,23,24,25,24,25,26,27,
+        28,29,28,29,30,31,32,1
+    };
+
+    int permutation_tab[32] = {
+        16,7,20,21,29,12,28,17,
+        1,15,23,26,5,18,31,10,
+        2,8,24,14,32,27,3,9,
+        19,13,30,6,22,11,4,25
+    };
+
+    for (int i = 0; i < 16; i++) {
+        // Expansion 32 -> 48
+        string right_expanded = "";
+        for (int j = 0; j < 48; j++)
+            right_expanded += right[expansion_table[j] - 1];
+
+        // XOR với round key
+        string xored = xor_str(right_expanded, roundKeys[i]);
+
+        string sbox = xored.substr(0, 32);
+
+        // Permutation
+        string perm2 = "";
+        for (int j = 0; j < 32; j++)
+            perm2 += sbox[permutation_tab[j] - 1];
+
+        string new_right = xor_str(left, perm2);
+
+        left = right;
+        right = new_right;
     }
+
+    string combined = right + left;
+    return inverse_initial_permutation(combined);
+}
 };
 
 // MAIN 
