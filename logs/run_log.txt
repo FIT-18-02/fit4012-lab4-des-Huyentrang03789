@@ -1,0 +1,19 @@
+=== Kiểm tra mã hóa DES ===
+Chế độ: 1
+Plaintext: 0000000100100011010001010110011110001001101010111100110111101111
+Key:       0001001100110100010101110111100110011011101111001101111111110001
+Ciphertext:1000010111101000000100110101010000001111000010101011010000000101
+
+=== Kiểm tra giải mã DES ===
+Chế độ: 2
+Recovered Plaintext: 0000000100100011010001010110011110001001101010111100110111101111
+
+=== Kiểm tra nhiều block ===
+Input: 1010101010 (có padding 0)
+Output: (ciphertext đã được tạo)
+
+=== Kiểm tra khóa sai ===
+Giải mã với khóa sai → kết quả khác plaintext (PASS)
+
+=== Kiểm tra thay đổi dữ liệu (tamper) ===
+Thay đổi 1 bit trong ciphertext → giải mã sai (PASS)
