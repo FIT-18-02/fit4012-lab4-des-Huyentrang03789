@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gợi ý: giải mã với khóa sai và chứng minh không khôi phục đúng plaintext.
+# Test: giải mã với khóa sai và chứng minh không khôi phục đúng plaintext.
 set -euo pipefail
 g++ -std=c++17 des.cpp -o des
 
