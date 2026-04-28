@@ -280,31 +280,25 @@ class DES {
     
 // Main function
 int main() {
-    // Example plaintext (64 bits)
-    string plaintext = "0001001000110100010101100111100010011010101111001101111011110001";
-    
-    // Example key (64 bits)
-    string key = "0001001100110100010101110111100110011011101111001101111111110001";
-    
-    // Generate round keys
+    int mode;
+    string plaintext, key;
+
+    cin >> mode;       
+    cin >> plaintext;  
+    cin >> key;      
+
     KeyGenerator keygen(key);
-    keygen.generateRoundKeys(); 
-    
+    keygen.generateRoundKeys();
     vector<string> roundKeys = keygen.getRoundKeys();
-    
-    // Create DES object
+
     DES des(roundKeys);
-    
-    // Encrypt
+
     string ciphertext = des.encrypt(plaintext);
-    
-    cout << "Ciphertext: " << ciphertext << endl;
-    
+
+    cout << ciphertext << endl; // in đúng format CI cần
+
     return 0;
 }
-
-    
-
 
 
 
