@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gợi ý: kiểm tra plaintext dài hơn 64 bit, chia block đúng và zero padding đúng.
+# Test: kiểm tra plaintext dài hơn 64 bit, chia block đúng và zero padding đúng.
 set -euo pipefail
 
 g++ -std=c++17 des.cpp -o des
