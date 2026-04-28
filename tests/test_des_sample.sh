@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gợi ý: compile chương trình, chạy, rồi đối chiếu ciphertext mẫu mong đợi.
+# Test: compile chương trình, chạy, rồi đối chiếu ciphertext mẫu mong đợi.
 set -euo pipefail
 
 g++ -std=c++17 des.cpp -o des
