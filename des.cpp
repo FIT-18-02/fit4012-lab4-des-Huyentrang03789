@@ -2,7 +2,6 @@
 #include <string>
 #include <bitset>
 #include <vector>
-#include <algorithm>
 using namespace std;
 
 // Helper function: Covert decimal to 4-bit binary string
@@ -108,14 +107,17 @@ public:
     void generateRoundKeys() {
         roundKeys.clear();
 
+        // 1. Apply PC1 permutation
         string permutedKey = "";
         for (int i = 0; i < 56; ++i) {
             permutedKey += key[pc1[i] - 1];
         }
 
+        // 2. Split into left and right halves
         string left = permutedKey.substr(0, 28);
         string right = permutedKey.substr(28, 28);
 
+        // 3. Generate 16 round keys
         for (int i = 0; i < 16; ++i) {
             if (i == 0 || i == 1 || i == 8 || i == 15) {
                 left = shift_left_once(left);
@@ -125,8 +127,10 @@ public:
                 right = shift_left_twice(right);
             }
 
+            // 4. Combine halves
             string combinedKey = left + right;
 
+            // 5. Apply PC2 permutation
             string roundKey = "";
             for (int j = 0; j < 48; ++j) {
                 roundKey += combinedKey[pc2[j] - 1];
@@ -134,8 +138,8 @@ public:
 
             roundKeys.push_back(roundKey);
 
-            // Optional: prin
-           cout << "Key " << i + 1 << ": " << roundKey << endl;
+            // Optional: print key
+            cout << "Key " << i + 1 << ": " << roundKey << endl;
         }
     }
 
@@ -217,137 +221,84 @@ class DES {
     
         vector<string> round_keys;
     
-   public:
-    KeyGenerator(const string& input_key) : key(input_key) {}
-
-    void generateRoundKeys() {
-        roundKeys.clear();
-
-        string permutedKey = "";
-        for (int i = 0; i < 56; ++i) {
-            permutedKey += key[pc1[i] - 1];
-        }
-
-        string left = permutedKey.substr(0, 28);
-        string right = permutedKey.substr(28, 28);
-
-        for (int i = 0; i < 16; ++i) {
-            if (i == 0 || i == 1 || i == 8 || i == 15) {
-                left = shift_left_once(left);
-                right = shift_left_once(right);
-            } else {
-                left = shift_left_twice(left);
-                right = shift_left_twice(right);
+    public:
+        DES(const vector<string>& keys) : round_keys(keys) {}
+    
+        string encrypt(const string& input) {
+            // Apply initial permutation outside class
+            string perm = initial_permutation(input);
+    
+            // Split into left and right parts
+            string left = perm.substr(0, 32);
+            string right = perm.substr(32, 32);
+    
+            // 16 Feistel rounds
+            for (int i = 0; i < 16; i++) {
+                // Expand right half to 48 bits
+                string right_expanded = "";
+                for (int j = 0; j < 48; j++) {
+                    right_expanded += right[expansion_table[j] - 1];
+                }
+    
+                // XOR with round key
+                string xored = Xor(round_keys[i], right_expanded);
+    
+                // S-box substitution
+                string res = "";
+                for (int j = 0; j < 8; j++) {
+                    string row1 = xored.substr(j * 6, 1) + xored.substr(j * 6 + 5, 1);
+                    int row = convert_binary_to_decimal(row1);
+    
+                    string col1 = xored.substr(j * 6 + 1, 4);
+                    int col = convert_binary_to_decimal(col1);
+    
+                    int val = substition_boxes[j][row][col];
+                    res += convert_decimal_to_binary(val);
+                }
+    
+                // Permutation after S-box
+                string perm2 = "";
+                for (int j = 0; j < 32; j++) {
+                    perm2 += res[permutation_tab[j] - 1];
+                }
+    
+                // XOR permuted result with left, then swap
+                string new_right = Xor(perm2, left);
+                left = right;
+                right = new_right;
             }
-
-            string combinedKey = left + right;
-
-            string roundKey = "";
-            for (int j = 0; j < 48; ++j) {
-                roundKey += combinedKey[pc2[j] - 1];
-            }
-
-            roundKeys.push_back(roundKey);
-
-            // cout << "Key " << i + 1 << ": " << roundKey << endl;
+    
+            // Swap final halves
+            string combined_text = right + left;
+    
+            // Apply inverse initial permutation outside class
+            string ciphertext = inverse_initial_permutation(combined_text);
+    
+            return ciphertext;
         }
-    }
-
-    const vector<string>& getRoundKeys() const {
-        return roundKeys;
-    }
 };
-
-class DES {
-private:
-    vector<string> round_keys;
-
-public:
-    DES(const vector<string>& keys) : round_keys(keys) {}
-
-    string encrypt(const string& input) {
-        string perm = initial_permutation(input);
-
-        string left = perm.substr(0, 32);
-        string right = perm.substr(32, 32);
-
-        for (int i = 0; i < 16; i++) {
-            string right_expanded = "";
-            for (int j = 0; j < 48; j++) {
-                right_expanded += right[j % 32];
-            }
-
-            string xored = Xor(round_keys[i], right_expanded);
-
-            string new_right = Xor(xored.substr(0, 32), left);
-
-            left = right;
-            right = new_right;
-        }
-
-        string combined = right + left;
-        return inverse_initial_permutation(combined);
-    }
-
-    // decrypt bằng cách đảo key
-    string decrypt(const string& input) {
-        vector<string> rev_keys = round_keys;
-        reverse(rev_keys.begin(), rev_keys.end());
-        DES temp(rev_keys);
-        return temp.encrypt(input);
-    }
-};
-
-//  MAIN 
+    
+// Main function
 int main() {
-    int mode;
-    string data, key;
-
-    cin >> mode;
-    cin >> data;
-    cin >> key;
-
+    // Example plaintext (64 bits)
+    string plaintext = "0001001000110100010101100111100010011010101111001101111011110001";
+    
+    // Example key (64 bits)
+    string key = "0001001100110100010101110111100110011011101111001101111111110001";
+    
+    // Generate round keys
     KeyGenerator keygen(key);
-    keygen.generateRoundKeys();
+    keygen.generateRoundKeys(); 
+    
     vector<string> roundKeys = keygen.getRoundKeys();
-
+    
+    // Create DES object
     DES des(roundKeys);
-
-    string result = "";
-
-    // MODE 1: ENCRYPT
-    if (mode == 1) {
-        for (size_t i = 0; i < data.size(); i += 64) {
-            string block = data.substr(i, 64);
-
-            if (block.size() < 64) {
-                block.append(64 - block.size(), '0'); // padding
-            }
-
-            result += des.encrypt(block);
-        }
-    }
-
-    // MODE 2: DECRYPT
-    else if (mode == 2) { // [BỔ SUNG]
-        for (size_t i = 0; i < data.size(); i += 64) {
-            string block = data.substr(i, 64);
-
-            if (block.size() < 64) {
-                block.append(64 - block.size(), '0');
-            }
-
-            result += des.decrypt(block);
-        }
-    }
-
-    cout << result << endl; // chuẩn CI
+    
+    // Encrypt
+    string ciphertext = des.encrypt(plaintext);
+    
+    cout << "Ciphertext: " << ciphertext << endl;
+    
     return 0;
 }
-    return 0;
-}
-
-
-
-
-
