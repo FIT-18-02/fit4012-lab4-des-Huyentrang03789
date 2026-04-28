@@ -3,5 +3,12 @@
 # Gợi ý: compile chương trình, chạy, rồi đối chiếu ciphertext mẫu mong đợi.
 set -euo pipefail
 
-echo "TODO_STUDENT: implement sample DES test"
-exit 0
+g++ -std=c++17 des.cpp -o des
+
+PLAINTEXT="0000000100100011010001010110011110001001101010111100110111101111"
+KEY="0001001100110100010101110111100110011011101111001101111111110001"
+EXPECTED="1000010111101000000100110101010000001111000010101011010000000101"
+
+OUTPUT=$(printf "1\n$PLAINTEXT\n$KEY\n" | ./des | tail -n 1)
+
+[[ "$OUTPUT" == "$EXPECTED" ]] && echo "[PASS]" || (echo "[FAIL]"; exit 1)
